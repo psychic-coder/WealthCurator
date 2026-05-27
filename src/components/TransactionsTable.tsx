@@ -1,30 +1,30 @@
 /**
  * src/components/TransactionsTable.tsx
  * Fully-featured transactions table with:
- * - Semantic <table> markup for accessibility
- * - react-window FixedSizeList windowing when row count > 20
+ * - Semantic <table> markup for accessibility (≤ 20 rows)
+ * - CSS-native overflow scroll for > 20 rows (no external dependency)
  * - React.memo on both the table and individual row components
- * - Color-coded status badges with text (not color-only)
+ * - Color-coded status badges with icon + text (not color-only)
  * - Search and category filtering support
  *
- * WHY react-window: Rendering 50+ DOM nodes for every transaction causes
- * layout thrashing. Virtual scrolling renders only visible rows (~10–15),
- * keeping frame rate smooth regardless of dataset size.
+ * WHY CSS scroll over react-window for this use case:
+ * react-window v2 changed its API entirely (breaking changes). For a 50-row
+ * demo dataset, a native overflow-y:scroll container with sticky headers
+ * achieves the same UX without any dependency risk. True virtualization
+ * (e.g. react-virtuoso) can be added when row counts exceed ~500.
  *
- * WHY React.memo on RowComponent: Even with react-window, each row is a
- * separate component. Without memo, every parent re-render re-renders all
+ * WHY React.memo on RowComponent: Each row is a separate component.
+ * Without memo, every parent re-render (search/filter) re-renders all
  * visible rows unnecessarily.
  */
 
-import React, { memo, useCallback } from "react";
-import { List } from "react-window";
+import React, { memo } from "react";
 import {
   ShoppingBag,
   Utensils,
-  Zap,
+  Heart,
   Plane,
   Tv,
-  Heart,
   Music,
   MoreHorizontal,
   CheckCircle,
@@ -52,7 +52,7 @@ interface TransactionsTableProps {
 }
 
 // ---------------------------------------------------------------------------
-// Category icon mapping
+// Category icon and color mapping
 // ---------------------------------------------------------------------------
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   Shopping: <ShoppingBag className="h-4 w-4" />,
@@ -73,7 +73,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Status badge — uses BOTH color AND icon+text (a11y: not color-only)
+// Status badge — uses BOTH icon AND text (a11y: never color-only)
 // ---------------------------------------------------------------------------
 const STATUS_CONFIG = {
   completed: {
@@ -107,22 +107,18 @@ function StatusBadge({ status }: { status: Transaction["status"] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Individual row component — memoized to prevent re-renders from list scroll
-// WHY: react-window passes style prop on each render; memo prevents unnecessary
-// DOM updates for rows that haven't changed data.
+// Single table row — memoized to prevent re-renders during parent state changes
+// WHY: Filtering/searching causes parent re-renders. Without memo, all visible
+// rows re-render on every keystroke even when their own data hasn't changed.
 // ---------------------------------------------------------------------------
-const RowComponent = memo(function RowComponent({
+const TableRow = memo(function TableRow({
+  transaction,
   index,
-  style,
-  data,
 }: {
+  transaction: Transaction;
   index: number;
-  style: React.CSSProperties;
-  data: Transaction[];
 }) {
-  const t = data[index];
-  if (!t) return null;
-
+  const t = transaction;
   const icon = CATEGORY_ICONS[t.category] ?? <MoreHorizontal className="h-4 w-4" />;
   const catClass = CATEGORY_COLORS[t.category] ?? "bg-muted text-muted-foreground";
   const isCredit = t.type === "credit";
@@ -133,171 +129,126 @@ const RowComponent = memo(function RowComponent({
   });
 
   return (
-    <div
-      style={style}
-      role="row"
-      className={`grid grid-cols-[1fr_1.8fr_1fr_1fr_1fr] items-center gap-4 border-b border-border/40 px-6 text-sm ${index % 2 === 0 ? "bg-transparent" : "bg-accent/20"}`}
-    >
-      <div role="cell" className="text-xs text-muted-foreground">{formattedDate}</div>
-      <div role="cell" className="flex items-center gap-3">
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"
-          aria-hidden="true"
-        >
-          {icon}
+    <tr className={`border-b border-border/40 last:border-0 transition-colors hover:bg-accent/30 ${index % 2 !== 0 ? "bg-accent/10" : ""}`}>
+      <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
+        {formattedDate}
+      </td>
+      <td className="px-5 py-3.5">
+        <div className="flex items-center gap-3">
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"
+            aria-hidden="true"
+          >
+            {icon}
+          </div>
+          <span className="text-sm font-medium truncate max-w-[160px]">{t.merchant}</span>
         </div>
-        <span className="truncate font-medium">{t.merchant}</span>
-      </div>
-      <div role="cell">
+      </td>
+      <td className="px-5 py-3.5">
         <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase font-medium ${catClass}`}>
           {t.category}
         </span>
-      </div>
-      <div role="cell">
+      </td>
+      <td className="px-5 py-3.5">
         <StatusBadge status={t.status} />
-      </div>
-      <div
-        role="cell"
-        className={`text-right font-semibold ${isCredit ? "text-emerald-400" : "text-foreground"}`}
-      >
-        {isCredit ? "+" : "-"}${t.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-      </div>
-    </div>
+      </td>
+      <td className={`px-5 py-3.5 text-right text-sm font-semibold whitespace-nowrap ${isCredit ? "text-emerald-400" : "text-foreground"}`}>
+        {isCredit ? "+" : "−"}${t.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </td>
+    </tr>
   );
 });
 
 // ---------------------------------------------------------------------------
-// Small table (≤ 20 rows) — standard semantic <table> markup
-// WHY: react-window uses divs which hurts screen readers for small lists.
-// Use proper <table> markup when windowing is not needed.
-// ---------------------------------------------------------------------------
-const SemanticTable = memo(function SemanticTable({
-  transactions,
-}: {
-  transactions: Transaction[];
-}) {
-  return (
-    <table className="w-full text-sm" role="table" aria-label="Transaction history">
-      <thead>
-        <tr className="border-b border-border/60">
-          <th scope="col" className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Date
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Merchant
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Category
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Status
-          </th>
-          <th scope="col" className="px-6 py-3 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Amount
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {transactions.map((t, index) => {
-          const icon = CATEGORY_ICONS[t.category] ?? <MoreHorizontal className="h-4 w-4" />;
-          const catClass = CATEGORY_COLORS[t.category] ?? "bg-muted text-muted-foreground";
-          const isCredit = t.type === "credit";
-          const formattedDate = new Date(t.date).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          });
-          return (
-            <tr
-              key={t.id}
-              className={`border-b border-border/40 last:border-0 ${index % 2 === 0 ? "" : "bg-accent/20"}`}
-            >
-              <td className="px-6 py-4 text-xs text-muted-foreground">{formattedDate}</td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground" aria-hidden="true">
-                    {icon}
-                  </div>
-                  <span className="font-medium">{t.merchant}</span>
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase font-medium ${catClass}`}>
-                  {t.category}
-                </span>
-              </td>
-              <td className="px-6 py-4">
-                <StatusBadge status={t.status} />
-              </td>
-              <td className={`px-6 py-4 text-right font-semibold ${isCredit ? "text-emerald-400" : ""}`}>
-                {isCredit ? "+" : "-"}${t.amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
-});
-
-// ---------------------------------------------------------------------------
-// Main TransactionsTable — switches to react-window when row count > 20
-// WHY React.memo: The parent (transactions route) re-renders on search/filter
-// changes. Without memo, the entire table unmounts/remounts on every keystroke.
+// Main TransactionsTable — uses CSS scroll for large lists (> 20 rows)
+// WHY React.memo: Parent (transactions route) re-renders on every search
+// keystroke. Without memo the entire table DOM is discarded and recreated.
 // ---------------------------------------------------------------------------
 const TransactionsTable = memo(function TransactionsTable({
   transactions,
   isLoading = false,
 }: TransactionsTableProps) {
-  const useWindowing = transactions.length > 20;
-
-  const itemData = useCallback(() => transactions, [transactions])();
+  const useStickyScroll = transactions.length > 20;
 
   if (isLoading) return <TransactionsTableSkeleton />;
 
   return (
     <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
-      {/* Header row — always rendered */}
-      <div className="grid grid-cols-[1fr_1.8fr_1fr_1fr_1fr] gap-4 border-b border-border/60 px-6 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        <div>Date</div>
-        <div>Merchant</div>
-        <div>Category</div>
-        <div>Status</div>
-        <div className="text-right">Amount</div>
-      </div>
-
-      {transactions.length === 0 ? (
-        <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-          No transactions match your search or filters.
-        </div>
-      ) : useWindowing ? (
-        /**
-         * WHY react-window FixedSizeList:
-         * With 50 rows each ~60px tall, the full list is 3000px of DOM nodes.
-         * FixedSizeList renders only the ~8 visible rows at a time,
-         * dramatically reducing paint and layout cost during scroll.
-         */
-        <div
+      {/* Scrollable wrapper — sticky header stays visible on scroll for large lists */}
+      <div
+        className={useStickyScroll ? "overflow-y-auto max-h-[520px]" : ""}
+        role="region"
+        aria-label="Transaction history"
+      >
+        <table
+          className="w-full text-sm"
           role="table"
-          aria-label="Transaction history (virtualized)"
+          aria-label="Transaction history"
           aria-rowcount={transactions.length}
         >
-          <List
-            height={480}
-            itemCount={transactions.length}
-            itemSize={60}
-            width="100%"
-            itemData={itemData}
-          >
-            {RowComponent as React.ComponentType<{ index: number; style: React.CSSProperties; data: Transaction[] }>}
-          </List>
-        </div>
-      ) : (
-        <SemanticTable transactions={transactions} />
-      )}
+          {/* Sticky header — stays pinned when scrolling through > 20 rows */}
+          <thead className={useStickyScroll ? "sticky top-0 z-10 bg-card" : ""}>
+            <tr className="border-b border-border/60">
+              <th
+                scope="col"
+                className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Date
+              </th>
+              <th
+                scope="col"
+                className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Merchant
+              </th>
+              <th
+                scope="col"
+                className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Category
+              </th>
+              <th
+                scope="col"
+                className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Status
+              </th>
+              <th
+                scope="col"
+                className="px-5 py-3 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Amount
+              </th>
+            </tr>
+          </thead>
 
-      <div className="border-t border-border/60 px-6 py-3 text-xs text-muted-foreground">
-        Showing {transactions.length} transaction{transactions.length !== 1 ? "s" : ""}
+          <tbody>
+            {transactions.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="px-5 py-10 text-center text-sm text-muted-foreground"
+                >
+                  No transactions match your search or filters.
+                </td>
+              </tr>
+            ) : (
+              transactions.map((t, index) => (
+                <TableRow key={t.id} transaction={t} index={index} />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Footer count */}
+      <div className="border-t border-border/60 px-5 py-3 text-xs text-muted-foreground flex items-center justify-between">
+        <span>
+          Showing {transactions.length} transaction{transactions.length !== 1 ? "s" : ""}
+        </span>
+        {useStickyScroll && (
+          <span className="text-muted-foreground/60 italic">Scroll to see all</span>
+        )}
       </div>
     </div>
   );
