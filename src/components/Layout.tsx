@@ -35,7 +35,7 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-6 px-6">
+        <div className="mx-auto flex h-16 max-w-full items-center gap-6 px-6">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/15 text-primary">
               <Landmark className="h-5 w-5" />
@@ -56,7 +56,7 @@ export function Layout({ children }: { children: ReactNode }) {
             />
           </div>
 
-          <nav className="ml-auto hidden items-center gap-6 lg:flex">
+          <nav className="ml-auto hidden items-center gap-6  lg:flex">
             {tabs.map((t) => {
               const active = pathname === t.to;
               return (
@@ -93,9 +93,9 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-[1400px] gap-6 px-6 py-6">
+      <div className="mx-auto flex max-w-full gap-6 px-6   py-6">
         {/* Sidebar */}
-        <aside className="hidden w-60 shrink-0 flex-col gap-1 md:flex">
+        <aside className="hidden items w-60 shrink-0 flex-col gap-1 md:flex">
           {nav.map((n) => {
             const Icon = n.icon;
             const active = pathname === n.to;
