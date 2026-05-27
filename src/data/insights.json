@@ -1,0 +1,47 @@
+[
+  {
+    "id": "ins_001",
+    "type": "risk",
+    "title": "Tech Exposure Spike — Rebalance Needed",
+    "description": "Your technology allocation increased by 14% this quarter. Consider shifting 4% into emerging market debt and high-yield real estate to maintain your risk-adjusted profile.",
+    "impact": "2.4% yield improvement",
+    "cta": "Execute Strategy",
+    "priority": "high"
+  },
+  {
+    "id": "ins_002",
+    "type": "saving",
+    "title": "Duplicate Streaming Subscriptions Detected",
+    "description": "You're subscribed to Netflix, Disney+, and Apple TV+ simultaneously. Removing two overlapping services based on your watch history could save you $180 annually.",
+    "impact": "$180/yr savings",
+    "cta": "Review Subscriptions",
+    "priority": "medium"
+  },
+  {
+    "id": "ins_003",
+    "type": "alert",
+    "title": "Emergency Fund Below 6-Month Target",
+    "description": "Your emergency fund covers only 2.1 months of expenses. The recommended safety net is 6 months. Consider redirecting $200/month until target is reached.",
+    "impact": "3.9 months gap",
+    "cta": "Build Emergency Fund",
+    "priority": "high"
+  },
+  {
+    "id": "ins_004",
+    "type": "opportunity",
+    "title": "SIP Auto-Debit Scheduled — Ensure Balance",
+    "description": "Your SIP auto-debit of $5,000 is scheduled for the 3rd. Current account balance may fall below required threshold. Consider transferring funds from your savings account.",
+    "impact": "Avoid failed debit",
+    "cta": "Transfer Funds",
+    "priority": "medium"
+  },
+  {
+    "id": "ins_005",
+    "type": "opportunity",
+    "title": "Tax-Loss Harvesting Opportunity",
+    "description": "3 assets in your legacy portfolio are eligible for tax-loss harvesting this quarter. Acting before month-end could reduce your tax liability significantly.",
+    "impact": "$2,100 tax benefit",
+    "cta": "Review Assets",
+    "priority": "low"
+  }
+]

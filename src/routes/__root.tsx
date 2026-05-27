@@ -67,24 +67,61 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+// GA4 measurement ID — set VITE_GA_MEASUREMENT_ID in .env
+const GA_ID = (import.meta as unknown as { env: { VITE_GA_MEASUREMENT_ID?: string } }).env
+  .VITE_GA_MEASUREMENT_ID ?? "G-XXXXXXXXXX";
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Wealth Curator — Personal Finance Dashboard" },
+      {
+        name: "description",
+        content:
+          "Wealth Curator is an AI-powered personal finance dashboard for net worth tracking, spending analysis, and smart portfolio insights.",
+      },
+      { name: "author", content: "Wealth Curator" },
+      { name: "theme-color", content: "#111315" },
+      { name: "robots", content: "index, follow" },
+      { name: "keywords", content: "personal finance, wealth management, portfolio tracker, budget dashboard" },
+      { property: "og:title", content: "Wealth Curator — Personal Finance Dashboard" },
+      {
+        property: "og:description",
+        content:
+          "Track your net worth, analyze spending patterns, and get AI-powered investment insights.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:image", content: "/og-preview.png" },
+      { property: "og:site_name", content: "Wealth Curator" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Wealth Curator — Personal Finance Dashboard" },
+      {
+        name: "twitter:description",
+        content: "AI-powered personal finance dashboard for net worth tracking and portfolio insights.",
+      },
+      { name: "twitter:image", content: "/og-preview.png" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "canonical", href: "https://wealth-curator.app" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+    ],
+    scripts: [
+      // GA4 gtag.js — loads asynchronously to avoid render blocking
       {
-        rel: "stylesheet",
-        href: appCss,
+        src: `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`,
+        async: true,
+      },
+      // GA4 initialization inline script
+      {
+        children: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_ID}', { anonymize_ip: true, send_page_view: false });
+        `,
       },
     ],
   }),
@@ -96,11 +133,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    // suppressHydrationWarning: dark class is toggled client-side via localStorage;
+    // browser extensions (e.g. form autofill) also mutate attributes before hydration.
+    // Both are expected, harmless mismatches — suppressing avoids React noise.
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body className="bg-background text-foreground">
+      <body className="bg-background text-foreground" suppressHydrationWarning>
         {children}
         <Scripts />
       </body>

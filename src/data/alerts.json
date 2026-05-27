@@ -1,0 +1,37 @@
+[
+  {
+    "id": "alert_001",
+    "severity": "danger",
+    "message": "3 new recurring charges detected from \"Cloud SaaS\" in the last 48 hours. Possible subscription duplication.",
+    "timestamp": "2026-10-24T10:00:00Z",
+    "read": false
+  },
+  {
+    "id": "alert_002",
+    "severity": "warning",
+    "message": "Your \"Rainy Day\" emergency fund has reached its $20,000 target. Consider redirecting monthly contributions.",
+    "timestamp": "2026-10-23T09:00:00Z",
+    "read": false
+  },
+  {
+    "id": "alert_003",
+    "severity": "info",
+    "message": "AAPL and MSFT paid dividends today. Automatic reinvestment of $240.90 is pending confirmation.",
+    "timestamp": "2026-10-22T16:00:00Z",
+    "read": false
+  },
+  {
+    "id": "alert_004",
+    "severity": "warning",
+    "message": "Entertainment budget has reached 90% ($450/$500). Pause non-essential bookings for the remainder of the month.",
+    "timestamp": "2026-10-21T14:30:00Z",
+    "read": false
+  },
+  {
+    "id": "alert_005",
+    "severity": "danger",
+    "message": "Unusual transaction of $1,250 at \"Unknown Merchant\" requires your verification before processing.",
+    "timestamp": "2026-10-20T08:15:00Z",
+    "read": false
+  }
+]
