@@ -38,11 +38,11 @@ export const SidebarBrand: FC<SidebarBrandProps> = ({ className, ...brandProps }
   );
 };
 
-export const Sidebar: FC<SidebarProps> = ({ className, backgroundClassName = "bg-sidebar text-sidebar-foreground", ...asideProps }) => {
+export const Sidebar: FC<SidebarProps> = ({ className, backgroundClassName = "bg-sidebar  text-sidebar-foreground", ...asideProps }) => {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <div className={`sticky top-0 flex flex-col h-screen overflow-y-auto px-6 py-6 ${backgroundClassName}`}>
+    <div className={`hidden md:flex sticky top-0 flex-col h-screen overflow-y-auto px-6 py-6 ${backgroundClassName}`}>
       <aside
         className={`hidden flex-1 w-60 shrink-0 flex-col gap-1 ${backgroundClassName} md:flex ${className ?? ""}`.trim()}
         {...asideProps}
