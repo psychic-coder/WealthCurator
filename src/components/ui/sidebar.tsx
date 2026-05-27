@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutGrid, Landmark, Receipt, PiggyBank, Lightbulb, Palette, Sparkles } from "lucide-react";
+import { LayoutGrid, Landmark, Receipt, PiggyBank, Lightbulb, Palette, Sparkles, HelpCircle, LogOut } from "lucide-react";
 import type { ComponentPropsWithoutRef, FC } from "react";
 
 type SidebarOwnProps = {
@@ -42,9 +42,9 @@ export const Sidebar: FC<SidebarProps> = ({ className, backgroundClassName = "bg
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <div className={`min-h-screen px-6 py-6 ${backgroundClassName}`}>
+    <div className={`flex flex-col min-h-screen px-6 py-6 ${backgroundClassName}`}>
       <aside
-        className={`hidden items w-60 shrink-0 flex-col gap-1 ${backgroundClassName} md:flex ${className ?? ""}`.trim()}
+        className={`hidden flex-1 w-60 shrink-0 flex-col gap-1 ${backgroundClassName} md:flex ${className ?? ""}`.trim()}
         {...asideProps}
       >
         <SidebarBrand className="mb-6 flex items-center px-3" />
@@ -68,14 +68,27 @@ export const Sidebar: FC<SidebarProps> = ({ className, backgroundClassName = "bg
           );
         })}
 
-        <div className="mt-6 rounded-xl border border-primary/30 bg-primary/10 p-4">
-          <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-primary">
-            <Sparkles className="h-3 w-3" /> Pro Access
+        <div className="mt-auto flex flex-col gap-6">
+          <div className="rounded-xl bg-[#004f9f] p-4 text-white">
+            <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-blue-200">
+              Pro Access
+            </div>
+            <div className="mb-4 text-sm font-medium leading-snug">Unlock AI Strategy Insights</div>
+            <button className="w-full rounded-md bg-white py-2.5 text-xs font-semibold text-[#004f9f] hover:bg-gray-50 transition-colors">
+              Upgrade to Premium
+            </button>
           </div>
-          <div className="mb-3 text-sm font-medium leading-snug">Unlock AI Strategy Insights</div>
-          <button className="w-full rounded-md bg-primary py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90">
-            Upgrade to Premium
-          </button>
+
+          <div className="flex flex-col gap-1">
+            <button className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors text-left">
+              <HelpCircle className="h-4 w-4" />
+              Help Center
+            </button>
+            <button className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors text-left">
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          </div>
         </div>
       </aside>
     </div>
