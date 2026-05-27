@@ -24,7 +24,7 @@ function Stat({
   positive?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-card p-5">
+    <div className="rounded-xl border border-border/60 p-5 bg-[#0a0e0e]">
       <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
         {label}
       </div>
@@ -133,7 +133,7 @@ function Dashboard() {
             <Bar label="Transportation" value="15%" pct={15} color="bg-sky-400" />
           </div>
 
-          <div className="mt-6 rounded-lg border border-border/50 bg-background/40 p-4 text-xs italic text-muted-foreground">
+          <div className="mt-6 rounded-lg border border-border/50 bg-[#181c1c] p-4 text-xs italic text-muted-foreground">
             <div className="mb-1 not-italic text-[10px] font-semibold uppercase tracking-wider text-foreground/70">
               Editor's Note
             </div>
