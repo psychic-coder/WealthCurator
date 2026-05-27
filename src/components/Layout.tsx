@@ -10,7 +10,7 @@
 
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Bell, Settings, Search, Moon, Sun } from "lucide-react";
-import Sidebar from "./ui/sidebar";
+import Sidebar, { SidebarBrand } from "./ui/sidebar";
 import { memo, useEffect, useCallback, useState, type ReactNode } from "react";
 import { useLocalStorage, useAnalytics } from "@/hooks";
 import { EVENTS, firesDarkModeToggled, pushDataLayer } from "@/analytics/events";
@@ -84,6 +84,9 @@ const TopBar = memo(function TopBar({
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="flex h-16 items-center justify-between gap-6 px-6">
+        {/* Mobile Logo */}
+        <SidebarBrand className="flex md:hidden" />
+
         {/* Search */}
         <div className="relative hidden flex-1 max-w-md md:block">
           <label htmlFor="global-search" className="sr-only">
