@@ -48,7 +48,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="relative ml-4 hidden flex-1 max-w-md md:block">
+          <div className="relative ml-20 hidden flex-1 max-w-md md:block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               className="h-9 w-full rounded-md border border-border/60 bg-card/60 pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
@@ -119,9 +119,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-primary">
               <Sparkles className="h-3 w-3" /> Pro Access
             </div>
-            <div className="mb-3 text-sm font-medium leading-snug">
-              Unlock AI Strategy Insights
-            </div>
+            <div className="mb-3 text-sm font-medium leading-snug">Unlock AI Strategy Insights</div>
             <button className="w-full rounded-md bg-primary py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90">
               Upgrade to Premium
             </button>
