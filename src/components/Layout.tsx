@@ -6,10 +6,6 @@
  * - Fully semantic HTML: <header>, <main>, <footer>
  * - Aria labels on all icon-only buttons
  * - Header is memoized to NOT re-render on transaction list changes
- *
- * WHY React.memo on Header: The Header contains search/settings icons.
- * Without memo it re-renders every time Dashboard state (search query,
- * alert list, etc.) changes, causing 60fps jank during typing.
  */
 
 import { Link, useRouterState } from "@tanstack/react-router";
@@ -26,58 +22,63 @@ const tabs = [
 ];
 
 // ---------------------------------------------------------------------------
-// DarkModeToggle — reads system preference on first load, persists to localStorage
+// useDarkMode — single source of truth for theme state.
+// Lives OUTSIDE TopBar so it can be passed down as a stable prop,
+// avoiding TopBar needing to re-render just to sync the icon state.
 // ---------------------------------------------------------------------------
-function DarkModeToggle() {
+function useDarkMode() {
   const { trackEvent } = useAnalytics();
 
-  // Detect system preference — only used when no localStorage value exists
-  const getSystemPreference = (): "dark" | "light" => {
+  const getInitialTheme = (): "dark" | "light" => {
     if (typeof window === "undefined") return "dark";
+    // 1. Check persisted preference first
+    try {
+      const stored = window.localStorage.getItem("wc-theme");
+      if (stored === "dark" || stored === "light") return stored;
+    } catch {
+      // ignore
+    }
+    // 2. Fall back to system preference
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   };
 
-  const [theme, setTheme] = useLocalStorage<"dark" | "light">(
-    "wc-theme",
-    getSystemPreference()
-  );
+  const [theme, setTheme] = useLocalStorage<"dark" | "light">("wc-theme", getInitialTheme());
 
-  // Apply theme class to <html> whenever theme changes
+  // Apply / remove the "dark" class on <html> whenever theme changes.
+  // This is the only place the DOM is mutated — one authoritative source.
   useEffect(() => {
-    if (typeof document === "undefined") return;
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    const root = document.documentElement;
+    if (theme === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
   }, [theme]);
 
-  const handleToggle = useCallback(() => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    // Fire analytics event
+  const toggle = useCallback(() => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
     trackEvent("preferences", EVENTS.DARK_MODE_TOGGLED);
-    pushDataLayer(EVENTS.DARK_MODE_TOGGLED, firesDarkModeToggled(newTheme === "dark"));
+    pushDataLayer(EVENTS.DARK_MODE_TOGGLED, firesDarkModeToggled(next === "dark"));
   }, [theme, setTheme, trackEvent]);
 
-  return (
-    <button
-      onClick={handleToggle}
-      className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      aria-pressed={theme === "dark"}
-    >
-      {theme === "dark" ? (
-        <Sun className="h-4 w-4" aria-hidden="true" />
-      ) : (
-        <Moon className="h-4 w-4" aria-hidden="true" />
-      )}
-    </button>
-  );
+  return { theme, toggle };
 }
 
 // ---------------------------------------------------------------------------
-// TopBar — memoized separately from the overall Layout
-// WHY: The TopBar contains no data from the transactions/alerts state.
-// Memoizing it prevents re-renders triggered by Dashboard search input changes.
+// TopBar — receives theme+toggle as props so it re-renders only when needed.
+// React.memo still prevents re-renders from unrelated parent state changes
+// (e.g. transaction search query updates).
 // ---------------------------------------------------------------------------
-const TopBar = memo(function TopBar({ pathname }: { pathname: string }) {
+const TopBar = memo(function TopBar({
+  pathname,
+  theme,
+  onThemeToggle,
+}: {
+  pathname: string;
+  theme: "dark" | "light";
+  onThemeToggle: () => void;
+}) {
   const [searchValue, setSearchValue] = useState("");
 
   return (
@@ -129,8 +130,20 @@ const TopBar = memo(function TopBar({ pathname }: { pathname: string }) {
 
         {/* Actions */}
         <div className="flex items-center gap-1 ml-auto lg:ml-0">
-          {/* Dark mode toggle */}
-          <DarkModeToggle />
+          {/* Dark / Light mode toggle */}
+          <button
+            onClick={onThemeToggle}
+            className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-pressed={theme === "dark"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Moon className="h-4 w-4" aria-hidden="true" />
+            )}
+          </button>
 
           <button
             className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -165,10 +178,11 @@ const TopBar = memo(function TopBar({ pathname }: { pathname: string }) {
 // ---------------------------------------------------------------------------
 export function Layout({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { theme, toggle } = useDarkMode();
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {/* Skip to content link — keyboard accessibility */}
+      {/* Skip to content — keyboard accessibility */}
       <a
         href="#main-content"
         className="skip-to-content sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none"
@@ -176,14 +190,11 @@ export function Layout({ children }: { children: ReactNode }) {
         Skip to content
       </a>
 
-      {/* Sidebar */}
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Top bar — memoized, won't re-render on data changes */}
-        <TopBar pathname={pathname} />
+        <TopBar pathname={pathname} theme={theme} onThemeToggle={toggle} />
 
-        {/* Main content */}
         <main id="main-content" className="flex-1 px-6 py-6" tabIndex={-1}>
           {children}
         </main>

@@ -1,22 +1,4 @@
-/**
- * src/components/TransactionsTable.tsx
- * Fully-featured transactions table with:
- * - Semantic <table> markup for accessibility (≤ 20 rows)
- * - CSS-native overflow scroll for > 20 rows (no external dependency)
- * - React.memo on both the table and individual row components
- * - Color-coded status badges with icon + text (not color-only)
- * - Search and category filtering support
- *
- * WHY CSS scroll over react-window for this use case:
- * react-window v2 changed its API entirely (breaking changes). For a 50-row
- * demo dataset, a native overflow-y:scroll container with sticky headers
- * achieves the same UX without any dependency risk. True virtualization
- * (e.g. react-virtuoso) can be added when row counts exceed ~500.
- *
- * WHY React.memo on RowComponent: Each row is a separate component.
- * Without memo, every parent re-render (search/filter) re-renders all
- * visible rows unnecessarily.
- */
+
 
 import React, { memo } from "react";
 import {
@@ -33,9 +15,7 @@ import {
 } from "lucide-react";
 import { TransactionsTableSkeleton } from "./SkeletonLoader";
 
-// ---------------------------------------------------------------------------
-// Type definitions
-// ---------------------------------------------------------------------------
+
 export interface Transaction {
   id: string;
   date: string;
@@ -159,11 +139,6 @@ const TableRow = memo(function TableRow({
   );
 });
 
-// ---------------------------------------------------------------------------
-// Main TransactionsTable — uses CSS scroll for large lists (> 20 rows)
-// WHY React.memo: Parent (transactions route) re-renders on every search
-// keystroke. Without memo the entire table DOM is discarded and recreated.
-// ---------------------------------------------------------------------------
 const TransactionsTable = memo(function TransactionsTable({
   transactions,
   isLoading = false,
