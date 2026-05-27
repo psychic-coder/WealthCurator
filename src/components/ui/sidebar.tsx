@@ -42,7 +42,7 @@ export const Sidebar: FC<SidebarProps> = ({ className, backgroundClassName = "bg
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <div className={`flex flex-col min-h-screen px-6 py-6 ${backgroundClassName}`}>
+    <div className={`sticky top-0 flex flex-col h-screen overflow-y-auto px-6 py-6 ${backgroundClassName}`}>
       <aside
         className={`hidden flex-1 w-60 shrink-0 flex-col gap-1 ${backgroundClassName} md:flex ${className ?? ""}`.trim()}
         {...asideProps}
@@ -74,7 +74,7 @@ export const Sidebar: FC<SidebarProps> = ({ className, backgroundClassName = "bg
               Pro Access
             </div>
             <div className="mb-4 text-sm font-medium leading-snug">Unlock AI Strategy Insights</div>
-            <button className="w-full rounded-md bg-background py-2.5 text-xs font-semibold text-primary hover:bg-accent hover:text-foreground transition-colors">
+            <button className="w-full rounded-md bg-white py-2.5 text-xs font-semibold text-primary hover:bg-accent hover:text-foreground transition-colors">
               Upgrade to Premium
             </button>
           </div>
