@@ -38,7 +38,7 @@ export const SidebarBrand: FC<SidebarBrandProps> = ({ className, ...brandProps }
   );
 };
 
-export const Sidebar: FC<SidebarProps> = ({ className, backgroundClassName = "bg-[#1a1c1d]", ...asideProps }) => {
+export const Sidebar: FC<SidebarProps> = ({ className, backgroundClassName = "bg-sidebar text-sidebar-foreground", ...asideProps }) => {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
@@ -69,12 +69,12 @@ export const Sidebar: FC<SidebarProps> = ({ className, backgroundClassName = "bg
         })}
 
         <div className="mt-auto flex flex-col gap-6">
-          <div className="rounded-xl bg-[#004f9f] p-4 text-white">
-            <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-blue-200">
+          <div className="rounded-xl bg-primary p-4 text-primary-foreground">
+            <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider opacity-80">
               Pro Access
             </div>
             <div className="mb-4 text-sm font-medium leading-snug">Unlock AI Strategy Insights</div>
-            <button className="w-full rounded-md bg-white py-2.5 text-xs font-semibold text-[#004f9f] hover:bg-gray-50 transition-colors">
+            <button className="w-full rounded-md bg-background py-2.5 text-xs font-semibold text-primary hover:bg-accent hover:text-foreground transition-colors">
               Upgrade to Premium
             </button>
           </div>

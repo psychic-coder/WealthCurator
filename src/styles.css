@@ -132,7 +132,7 @@
   --chart-3: oklch(0.72 0.18 70);
   --chart-4: oklch(0.65 0.22 25);
   --chart-5: oklch(0.65 0.18 300);
-  --sidebar: oklch(0.20 0.022 255);
+  --sidebar: #1a1c1d;
   --sidebar-foreground: oklch(0.92 0.01 247);
   --sidebar-primary: oklch(0.55 0.21 255);
   --sidebar-primary-foreground: oklch(0.99 0.003 247);
